@@ -1,6 +1,6 @@
 import asyncWrapper from "../middleware/asyncWrapper.js";
 import Course from "../model/course.model.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import { userRole } from "../utils/userRole.js";
 
