@@ -26,7 +26,7 @@ import {
 } from "../validators/course.validators.js";
 import { validatorMiddleware } from "../middleware/validatorMiddleware.js";
 import { createLessonValidation } from "../validators/lesson.validators.js";
-import { markLessonComplete, getCourseProgress  } from "../controller/markLessonComplete.js";
+import { markLessonComplete, getCourseProgress  } from "../controller/markLessonComplete.controller.js";
 const courseRouter = express.Router();
 
 courseRouter

@@ -3,7 +3,7 @@ import Course from "../model/course.model.js";
 import Enrollment from "../model/enrollment.model.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import AppError from "../utils/appError.js";
-
+import {getPaginationParams} from "../utils/pagination.js";
 
 
 const enrollInCourse = asyncWrapper(
@@ -55,15 +55,28 @@ const enrollInCourse = asyncWrapper(
 
 const getMyEnrollments = asyncWrapper(
 
-    async (req, res, next)=>{
+    async (req, res, next) => {
 
-
+        const { page, limit, skip } = getPaginationParams(req.query);
         const user = req.currentUser.id;
 
-        const myCourses = await Enrollment.find({student: user}).populate('course');
+    const [myCourses, totalEnrollments] = await Promise.all(
+        [
+            Enrollment.find({student: user}).populate('course').skip(skip).limit(limit),
+            Enrollment.countDocuments({student: user})
+        ]
+    );
 
+    const totalPages = Math.ceil(totalEnrollments / limit);
 
-        res.json({status: httpStatusText.SUCCESS, data: myCourses});
+res.json({
+    status: httpStatusText.SUCCESS,
+    data: {
+        enrollments: myCourses,
+        pagination: { page, limit, totalEnrollments, totalPages }
+    }
+});
+
 
 
     }
