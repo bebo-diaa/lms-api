@@ -5,7 +5,7 @@ import userRouter from './route/user.route.js';
 import { httpStatusText } from "./utils/httpStatusText.js";
 import courseRouter from './route/course.route.js';
 import fs from 'node:fs';
-
+import reviewRouter from './route/review.route.js';
 dotenv.config();
 const url = process.env.MONGOE_URL;
 
@@ -24,7 +24,7 @@ app.use(express.json());
 
 app.use('/api/users', userRouter);
 app.use('/api/courses', courseRouter);
-
+app.use('/api/reviews', reviewRouter);
 
 app.use((error, req, res, next) => {
     

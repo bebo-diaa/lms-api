@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import {courseCategory} from "../utils/category.js";
 const courseSchema = new mongoose.Schema({
 
     title: {
@@ -23,6 +23,11 @@ const courseSchema = new mongoose.Schema({
     published: {
         type: Boolean,
         default: false
+    },
+    category:{
+        type: String,
+        enum: [courseCategory.PROGRAMMING, courseCategory.DESIGN, courseCategory.MARKETING, courseCategory.BUSINESS, courseCategory.LANGUAGES, courseCategory.PERSONAL_DEVELOPMENT],
+        required: true
     }
 
 

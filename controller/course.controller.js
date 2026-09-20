@@ -3,7 +3,10 @@ import Course from "../model/course.model.js";
 import AppError from "../utils/appError.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import { userRole } from "../utils/userRole.js";
-import {getPaginationParams} from "../utils/pagination.js";
+import { getPaginationParams } from "../utils/pagination.js";
+import { allowedSortFields, allowedSortOrders } from "../utils/sort.js";
+import Lesson from "../model/lessons.model.js";
+
 const createCourse = asyncWrapper(async (req, res) => {
   const { title, description, price } = req.body;
 
@@ -22,18 +25,57 @@ const createCourse = asyncWrapper(async (req, res) => {
 });
 
 const getAllCourses = asyncWrapper(async (req, res) => {
-
-
   const { page, limit, skip } = getPaginationParams(req.query);
 
+  const filter = {
+    published: true,
+  };
+
+  if (req.query.category) {
+    filter.category = req.query.category;
+  }
+
+  if (req.query.search) {
+    filter.title = {
+      $regex: req.query.search,
+      $options: "i",
+    };
+  }
+
+  const { sort: sortField, order } = req.query;
+
+  let sort = {};
+
+  if (sortField) {
+    if (!allowedSortFields.includes(sortField)) {
+      return res.status(400).json({
+        status: httpStatusText.FAIL,
+        message: `Invalid sort field. Allowed fields: ${allowedSortFields.join(", ")}`,
+      });
+    }
+
+    if (!order || !allowedSortOrders.includes(order)) {
+      return res.status(400).json({
+        status: httpStatusText.FAIL,
+        message: "Invalid sort order. Allowed orders: asc, desc",
+      });
+    }
+
+    sort[sortField] = order === "asc" ? 1 : -1;
+  }
+
   const [courses, totalCourses] = await Promise.all([
-    Course.find({ published: true })
+    Course.find(filter)
       .populate("instructor")
+      .sort(sort)
       .skip(skip)
       .limit(limit),
-    Course.countDocuments({ published: true }),
+
+    Course.countDocuments(filter),
   ]);
+
   const totalPages = Math.ceil(totalCourses / limit);
+
   res.json({
     status: httpStatusText.SUCCESS,
     data: {
@@ -43,6 +85,12 @@ const getAllCourses = asyncWrapper(async (req, res) => {
         page,
         limit,
         totalPages,
+      },
+      filters: {
+        category: req.query.category,
+        search: req.query.search,
+        sort: sortField,
+        order,
       },
     },
   });
@@ -134,7 +182,7 @@ const getMyCourses = asyncWrapper(async (req, res) => {
 const getCourseById = asyncWrapper(async (req, res, next) => {
   const courseId = req.params.courseId;
 
-  const course = await Course.findById(courseId);
+  const course = await Course.findById(courseId).populate("instructor", "firstName lastName");
 
   if (!course) {
     const error = AppError.create(
@@ -146,15 +194,32 @@ const getCourseById = asyncWrapper(async (req, res, next) => {
   }
 
   if (course.published) {
-    return res.json({ status: httpStatusText.SUCCESS, data: course });
+    const lessons = await Lesson.find({ course: courseId }).select("title order").sort({ order: 1 });
+
+    return res.json({
+      status: httpStatusText.SUCCESS,
+      data: {
+        course,
+        lessons,
+        lessonsCount: lessons.length,
+      },
+    });
   }
 
   const isAdmin = req.currentUser && req.currentUser.role === userRole.ADMIN;
-  const isOwner =
-    req.currentUser && course.instructor.toString() === req.currentUser.id;
+const isOwner =
+  req.currentUser &&
+  course.instructor._id.toString() === req.currentUser.id;
 
   if (isAdmin || isOwner) {
-    return res.json({ status: httpStatusText.SUCCESS, data: course });
+    return res.json({
+      status: httpStatusText.SUCCESS,
+      data: {
+        course,
+        lessons: [],
+        lessonsCount: 0,
+      },
+    });
   }
 
   const error = AppError.create(

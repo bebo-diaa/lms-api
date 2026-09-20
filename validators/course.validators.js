@@ -1,5 +1,7 @@
 import { body } from 'express-validator';
+import { courseCategory } from '../utils/category.js';
 
+const validCategories = Object.values(courseCategory);
 
 const createCourseValidation = [
 
@@ -13,8 +15,11 @@ const createCourseValidation = [
     body('price')
         .notEmpty()
         .isFloat()
-        .withMessage('price must be exist and numeric')
-
+        .withMessage('price must be exist and numeric'),
+    body('category')
+        .notEmpty()
+        .isIn(validCategories)
+        .withMessage(`category must be one of the following: ${validCategories.join(', ')}`)    
 ];
 
 const updateCourseValidation = [
@@ -37,9 +42,11 @@ const updateCourseValidation = [
 
     body('published')
         .optional()
-        .isBoolean()
-
-
+        .isBoolean(),
+    body('category')
+        .optional()
+        .isIn(validCategories)
+        .withMessage(`category must be one of the following: ${validCategories.join(', ')}`)    
 ]
 
 export {

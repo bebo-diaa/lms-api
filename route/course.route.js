@@ -8,6 +8,7 @@ import {
   getMyCourses,
   getCourseById,
 } from "../controller/course.controller.js";
+
 import {
   enrollInCourse,
   getMyEnrollments,
