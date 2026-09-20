@@ -3,7 +3,7 @@ import asyncWrapper from "../middleware/asyncWrapper.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 import Course from "../model/course.model.js";
 import Review from "../model/review.model.js";
-
+import Enrollment from "../model/enrollment.model.js";
 
 const createReview = asyncWrapper(async (req, res, next) => {
   const userId = req.currentUser.id;
@@ -31,7 +31,7 @@ const createReview = asyncWrapper(async (req, res, next) => {
   return next(error);
 }
   const enrollment = await Enrollment.findOne({
-    user: userId,
+    student: userId,
     course: courseId,
   });
 

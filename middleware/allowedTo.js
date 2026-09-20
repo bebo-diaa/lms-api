@@ -1,21 +1,32 @@
-import AppError from "../utils/AppError.js";
-import  {httpStatusText} from '../utils/httpStatusText.js';
+import AppError from "../utils/appError.js";
+import { httpStatusText } from "../utils/httpStatusText.js";
 
-const allowedTo = (...roles)=>{
+const allowedTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.currentUser) {
+      const error = AppError.create(
+        "Authentication required",
+        401,
+        httpStatusText.FAIL
+      );
 
-
-    return (req,res,next)=>{
-
-        if(!roles.includes(req.currentUser.role)){
-                    const error = AppError.create("you are not allowed to perform this action ", 403, httpStatusText.FAIL)
-                    return next(error);
-        }
-        next();
+      return next(error);
     }
 
+    if (!roles.includes(req.currentUser.role)) {
+      const error = AppError.create(
+        "You are not allowed to perform this action",
+        403,
+        httpStatusText.FAIL
+      );
 
-}
+      return next(error);
+    }
 
-export{
-    allowedTo
-}
+    next();
+  };
+};
+
+export {
+  allowedTo,
+};

@@ -1,7 +1,7 @@
 import express from "express";
 import { favoriteValidator } from "../validators/favorite.validators.js";
 import { validatorMiddleware } from "../middleware/validatorMiddleware.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import  verifyToken  from "../middleware/verifyToken.js";
 import {
   getMyFavorites,
   removeFavorite,
@@ -11,12 +11,11 @@ import {
 const favoriteRouter = express.Router();
 
 favoriteRouter
-  .route("/:coureId")
-  .post(verifyToken, favoriteValidator, validatorMiddleware, addFavorite);
-
-favoriteRouter
   .route("/:courseId")
+  .post(verifyToken, favoriteValidator, validatorMiddleware, addFavorite)
   .delete(verifyToken, favoriteValidator, validatorMiddleware, removeFavorite);
+
+
 
 favoriteRouter.route("/").get(verifyToken, getMyFavorites);
 

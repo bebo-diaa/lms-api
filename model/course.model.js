@@ -6,10 +6,12 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    
     description: {
         type: String,
         required: true
     },
+
     instructor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -20,10 +22,12 @@ const courseSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+
     published: {
         type: Boolean,
         default: false
     },
+
     category:{
         type: String,
         enum: [courseCategory.PROGRAMMING, courseCategory.DESIGN, courseCategory.MARKETING, courseCategory.BUSINESS, courseCategory.LANGUAGES, courseCategory.PERSONAL_DEVELOPMENT],

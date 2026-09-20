@@ -6,9 +6,10 @@ import { userRole } from "../utils/userRole.js";
 import { getPaginationParams } from "../utils/pagination.js";
 import { allowedSortFields, allowedSortOrders } from "../utils/sort.js";
 import Lesson from "../model/lessons.model.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 
 const createCourse = asyncWrapper(async (req, res) => {
-  const { title, description, price } = req.body;
+  const { title, description, price, category } = req.body;
 
   const instructor = req.currentUser.id;
 
@@ -16,6 +17,7 @@ const createCourse = asyncWrapper(async (req, res) => {
     title,
     description,
     price,
+    category,
     instructor,
   });
 
@@ -35,13 +37,12 @@ const getAllCourses = asyncWrapper(async (req, res) => {
     filter.category = req.query.category;
   }
 
-  if (req.query.search) {
-    filter.title = {
-      $regex: req.query.search,
-      $options: "i",
-    };
-  }
-
+if (req.query.search) {
+  filter.title = {
+    $regex: escapeRegex(req.query.search),
+    $options: "i",
+  };
+}
   const { sort: sortField, order } = req.query;
 
   let sort = {};
@@ -66,7 +67,7 @@ const getAllCourses = asyncWrapper(async (req, res) => {
 
   const [courses, totalCourses] = await Promise.all([
     Course.find(filter)
-      .populate("instructor")
+      .populate("instructor", "firstName lastName")
       .sort(sort)
       .skip(skip)
       .limit(limit),
@@ -174,7 +175,7 @@ const deleteCourse = asyncWrapper(async (req, res, next) => {
 const getMyCourses = asyncWrapper(async (req, res) => {
   const courses = await Course.find({
     instructor: req.currentUser.id,
-  }).populate("instructor");
+  }).populate("instructor", "firstName lastName");
 
   res.json({ status: httpStatusText.SUCCESS, data: { courses } });
 });

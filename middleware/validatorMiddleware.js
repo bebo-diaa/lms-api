@@ -3,22 +3,26 @@ import AppError from "../utils/appError.js";
 import { httpStatusText } from "../utils/httpStatusText.js";
 
 const validatorMiddleware = (req, res, next) => {
+  const errors = validationResult(req);
 
-    const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorMessages = errors
+      .array()
+      .map((err) => err.msg)
+      .join(", ");
 
-    if (!errors.isEmpty()) {
-        const errorMessages = errors.array().map(err => err.msg).join(', ');
-        const error = AppError.create(errorMessages, 400, httpStatusText.ERROR);
-        return next(error)
-    }
+    const error = AppError.create(
+      errorMessages,
+      400,
+      httpStatusText.FAIL
+    );
 
-    next();
+    return next(error);
+  }
 
+  next();
+};
 
-
-}
-
-
-export{
-    validatorMiddleware
-}
+export {
+  validatorMiddleware,
+};

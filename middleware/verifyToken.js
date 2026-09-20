@@ -1,25 +1,50 @@
-import jwt from 'jsonwebtoken'
-import AppError from "../utils/AppError.js";
-import  {httpStatusText} from '../utils/httpStatusText.js';
+import jwt from "jsonwebtoken";
+import AppError from "../utils/appError.js";
+import { httpStatusText } from "../utils/httpStatusText.js";
 
-export const verifyToken = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader ) {
-        const error = AppError.create("token is required ", 401, httpStatusText.FAIL)
-        return next(error);
-    }
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-    const token = authHeader.split(" ")[1];
+  if (!authHeader) {
+    const error = AppError.create(
+      "Token is required",
+      401,
+      httpStatusText.FAIL
+    );
 
-    try {
+    return next(error);
+  }
 
-        const currentUser = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        req.currentUser = currentUser;
-        next();
+  const [scheme, token] = authHeader.trim().split(/\s+/);
 
-    } catch (err) {
-        const error = AppError.create("invalid token ", 401, httpStatusText.FAIL)
-        return next(error);
-    }
+  if (scheme !== "Bearer" || !token) {
+    const error = AppError.create(
+      "Invalid authorization format",
+      401,
+      httpStatusText.FAIL
+    );
 
-}  
+    return next(error);
+  }
+
+  try {
+    const currentUser = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY
+    );
+
+    req.currentUser = currentUser;
+
+    next();
+  } catch (err) {
+    const error = AppError.create(
+      "Invalid token",
+      401,
+      httpStatusText.FAIL
+    );
+
+    return next(error);
+  }
+};
+
+export default verifyToken;
