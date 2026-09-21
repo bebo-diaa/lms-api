@@ -14,7 +14,7 @@ import {
   getMyEnrollments,
 } from "../controller/enrollment.controller.js";
 
-import  verifyToken  from "../middleware/verifyToken.js";
+import verifyToken from "../middleware/verifyToken.js";
 import { allowedTo } from "../middleware/allowedTo.js";
 import { userRole } from "../utils/userRole.js";
 
@@ -43,6 +43,8 @@ import {
   getCourseProgress,
 } from "../controller/markLessonComplete.controller.js";
 
+import upload from "../middleware/upload.js";
+
 const courseRouter = express.Router();
 
 courseRouter
@@ -52,69 +54,55 @@ courseRouter
     allowedTo(userRole.INSTRUCTOR, userRole.ADMIN),
     createCourseValidation,
     validatorMiddleware,
-    createCourse
+    createCourse,
   );
 
 courseRouter.route("/").get(getAllCourses);
 
-courseRouter.route("/myCourses").get(
-  verifyToken,
-  getMyCourses
-);
+courseRouter.route("/myCourses").get(verifyToken, getMyCourses);
 
-courseRouter.route("/my-enrollments").get(
-  verifyToken,
-  getMyEnrollments
-);
+courseRouter.route("/my-enrollments").get(verifyToken, getMyEnrollments);
 
 courseRouter
   .route("/:courseId")
-  .get(
-    courseIdValidation,
-    validatorMiddleware,
-    getCourseById
-  )
+  .get(courseIdValidation, validatorMiddleware, getCourseById)
   .patch(
     verifyToken,
     allowedTo(userRole.ADMIN, userRole.INSTRUCTOR),
     courseIdValidation,
     updateCourseValidation,
     validatorMiddleware,
-    updateCourse
+    updateCourse,
   )
   .delete(
     verifyToken,
     allowedTo(userRole.ADMIN, userRole.INSTRUCTOR),
     courseIdValidation,
     validatorMiddleware,
-    deleteCourse
+    deleteCourse,
   );
 
 courseRouter
   .route("/:courseId/enroll")
-  .post(
-    verifyToken,
-    courseIdValidation,
-    validatorMiddleware,
-    enrollInCourse
-  );
+  .post(verifyToken, courseIdValidation, validatorMiddleware, enrollInCourse);
 
 courseRouter
   .route("/:courseId/lessons")
   .post(
     verifyToken,
     allowedTo(userRole.INSTRUCTOR, userRole.ADMIN),
+    upload.single("video"),
     courseIdValidation,
     createLessonValidation,
     validatorMiddleware,
-    createLesson
+    createLesson,
   )
   .get(
     verifyToken,
     courseIdValidation,
     validatorMiddleware,
     isEnroll,
-    getLessonsByCourse
+    getLessonsByCourse,
   );
 
 courseRouter
@@ -125,7 +113,7 @@ courseRouter
     lessonIdValidation,
     validatorMiddleware,
     isEnroll,
-    markLessonComplete
+    markLessonComplete,
   );
 
 courseRouter
@@ -135,7 +123,7 @@ courseRouter
     courseIdValidation,
     validatorMiddleware,
     isEnroll,
-    getCourseProgress
+    getCourseProgress,
   );
 
 export default courseRouter;

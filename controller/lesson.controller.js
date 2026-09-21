@@ -24,8 +24,8 @@ const createLesson = asyncWrapper(
             return next(error);
         }
 
-        const { title, videoUrl } = req.body;
-
+        const { title } = req.body;
+        const videoUrl = req.file.path;
         const countLesson = await Lesson.countDocuments({ course: courseId });
 
         const newOrder = 1 + countLesson;
