@@ -465,7 +465,6 @@ describe("Course, Lesson & Enrollment API", () => {
           category: "programming",
         });
 
-      console.log("COURSE CREATE:", response.statusCode, response.body);
 
       expect(response.statusCode).toBe(200);
       expect(response.body.data.published).toBe(false);
@@ -534,7 +533,7 @@ describe("Course, Lesson & Enrollment API", () => {
     async () => {
       const response = await request(app).get("/api/courses/");
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
 
       const found = response.body.data.courses.find(
         (course) => course._id === unpublishedCourseId
@@ -552,7 +551,7 @@ describe("Course, Lesson & Enrollment API", () => {
         "/api/courses/?page=1&limit=5"
       );
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       expect(response.body.data.pagination).toBeDefined();
       expect(response.body.data.pagination.limit).toBe(5);
       expect(response.body.data.pagination.totalPages).toBeDefined();
@@ -567,7 +566,7 @@ describe("Course, Lesson & Enrollment API", () => {
         "/api/courses/?category=programming"
       );
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
 
       for (const course of response.body.data.courses) {
         expect(course.category).toBe("programming");
@@ -583,7 +582,7 @@ describe("Course, Lesson & Enrollment API", () => {
         "/api/courses/?search=Node"
       );
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
 
       for (const course of response.body.data.courses) {
         expect(course.title.toLowerCase()).toContain("node");
@@ -623,7 +622,7 @@ describe("Course, Lesson & Enrollment API", () => {
         "/api/courses/?sort=price&order=asc"
       );
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
 
       const courses = response.body.data.courses;
 
@@ -686,7 +685,7 @@ describe("Course, Lesson & Enrollment API", () => {
         .post(`/api/courses/${courseId}/enroll`)
         .set("Authorization", `Bearer ${studentToken}`);
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       expect(response.body.data.course).toBe(courseId);
     },
     20000
@@ -728,7 +727,7 @@ describe("Course, Lesson & Enrollment API", () => {
           videoUrl: "https://example.com/video1.mp4",
         });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(201);
       expect(response.body.data.order).toBe(1);
 
       lessonId = response.body.data._id;
@@ -876,7 +875,7 @@ describe("Course, Lesson & Enrollment API", () => {
             videoUrl: "https://example.com/video2.mp4",
           });
 
-        expect(secondLesson.statusCode).toBe(200);
+        expect(secondLesson.statusCode).toBe(201);
 
         const secondLessonId = secondLesson.body.data._id;
 
@@ -1001,7 +1000,7 @@ describe("Reviews API", () => {
       .post(`/api/courses/${courseId}/enroll`)
       .set("Authorization", `Bearer ${studentToken}`);
 
-    expect(enrollResponse.statusCode).toBe(200);
+    expect(enrollResponse.statusCode).toBe(201);
   }, 30000);
 
   test(

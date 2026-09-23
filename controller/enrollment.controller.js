@@ -34,7 +34,7 @@ const enrollInCourse = asyncWrapper(
             )
 
             await enrolledCourse.save();
-            res.json({ status: httpStatusText.SUCCESS, data: enrolledCourse })
+            res.status(201).json({ status: httpStatusText.SUCCESS, data: enrolledCourse })
 
         }
         catch (err) {

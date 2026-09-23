@@ -84,7 +84,7 @@ courseRouter
 
 courseRouter
   .route("/:courseId/enroll")
-  .post(verifyToken, courseIdValidation, validatorMiddleware, enrollInCourse);
+  .post(verifyToken,allowedTo(userRole.STUDENT) ,courseIdValidation, validatorMiddleware, enrollInCourse);
 
 courseRouter
   .route("/:courseId/lessons")

@@ -77,7 +77,7 @@ if (req.query.search) {
 
   const totalPages = Math.ceil(totalCourses / limit);
 
-  res.json({
+  res.status(201).json({
     status: httpStatusText.SUCCESS,
     data: {
       courses,
@@ -116,31 +116,36 @@ const updateCourse = asyncWrapper(async (req, res, next) => {
     req.currentUser.role !== userRole.ADMIN
   ) {
     const error = AppError.create(
-      "this operation is forbidden ",
+      "this operation is forbidden",
       403,
       httpStatusText.ERROR,
     );
     return next(error);
   }
 
-  const { title, description, price, published } = req.body;
+  const { title, description, price, published, category } = req.body;
+
+  const updates = {
+    ...(title !== undefined && { title }),
+    ...(description !== undefined && { description }),
+    ...(price !== undefined && { price }),
+    ...(published !== undefined && { published }),
+    ...(category !== undefined && { category }),
+  };
 
   const updatedCourse = await Course.findByIdAndUpdate(
     courseId,
-    {
-      $set: {
-        title,
-        description,
-        price,
-        published,
-      },
-    },
-    { new: true },
+    { $set: updates },
+    { new: true,
+      runValidators: true
+     },
   );
 
-  res.json({ status: httpStatusText.SUCCESS, data: updatedCourse });
+  res.json({
+    status: httpStatusText.SUCCESS,
+    data: updatedCourse,
+  });
 });
-
 const deleteCourse = asyncWrapper(async (req, res, next) => {
   const courseId = req.params.courseId;
 

@@ -50,17 +50,15 @@ const markLessonComplete = asyncWrapper(async (req, res, next) => {
 });
 
 const getCourseProgress = asyncWrapper(async (req, res, next) => {
-    
   const courseId = req.params.courseId;
 
   const lessons = await Lesson.find({ course: courseId });
   const numberOfLessons = lessons.length;
-  const completedLessons = await Progress.find({
+  const completedLessons = await Progress.countDocuments({
     student: req.currentUser.id,
     lesson: { $in: lessons.map((lesson) => lesson._id) },
     completed: true,
-  }).countDocuments();
-
+  });
   if (numberOfLessons === 0) {
     const error = AppError.create(
       "No lessons found for this course",

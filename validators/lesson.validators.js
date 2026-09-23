@@ -4,6 +4,10 @@ const createLessonValidation = [
   body("title")
     .notEmpty()
     .withMessage("Title must be filled"),
+      body("videoUrl")
+    .optional()
+    .isURL()
+    .withMessage("Video URL must be a valid URL"),
     
 ];
 

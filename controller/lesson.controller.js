@@ -5,69 +5,58 @@ import AppError from "../utils/appError.js";
 import { userRole } from "../utils/userRole.js";
 import Lesson from "../model/lessons.model.js";
 
-const createLesson = asyncWrapper(
+const createLesson = asyncWrapper(async (req, res, next) => {
+  const courseId = req.params.courseId;
 
+  const course = await Course.findById(courseId);
 
-    async (req, res, next) => {
+  if (!course) {
+    const error = AppError.create(
+      "Course not found",
+      404,
+      httpStatusText.ERROR,
+    );
+    return next(error);
+  }
 
-        const courseId = req.params.courseId;
+  if (
+    course.instructor.toString() !== req.currentUser.id &&
+    req.currentUser.role !== userRole.ADMIN
+  ) {
+    const error = AppError.create(
+      "this operation is forbidden ",
+      403,
+      httpStatusText.ERROR,
+    );
+    return next(error);
+  }
 
-        const course = await Course.findById(courseId);
+  const { title } = req.body;
+const videoUrl = req.file ? req.file.path : req.body.videoUrl;
 
-        if (!course) {
-            const error = AppError.create("Course not found", 404, httpStatusText.ERROR);
-            return next(error);
-        }
+  const lastLesson = await Lesson.findOne({ course: courseId }).sort({
+    order: -1,
+  });
 
-        if (course.instructor.toString() !== req.currentUser.id && req.currentUser.role !== userRole.ADMIN) {
-            const error = AppError.create("this operation is forbidden ", 403, httpStatusText.ERROR);
-            return next(error);
-        }
+  const newOrder = lastLesson ? lastLesson.order + 1 : 1;
+  const newLesson = new Lesson({
+    title,
+    videoUrl,
+    course: courseId,
+    order: newOrder,
+  });
 
-        const { title } = req.body;
-        const videoUrl = req.file.path;
-        const countLesson = await Lesson.countDocuments({ course: courseId });
+  await newLesson.save();
 
-        const newOrder = 1 + countLesson;
+  res.status(201).json({ status: httpStatusText.SUCCESS, data: newLesson });
+});
 
-        const newLesson = new Lesson(
-            {
-                title,
-                videoUrl,
-                course: courseId,
-                order: newOrder
-            }
-        )
+const getLessonsByCourse = asyncWrapper(async (req, res, next) => {
+  const courseId = req.params.courseId;
 
-        await newLesson.save();
+  const lessons = await Lesson.find({ course: courseId }).sort({ order: 1 });
 
-        res.json({ status: httpStatusText.SUCCESS, data: newLesson });
+  res.json({ status: httpStatusText.SUCCESS, data: lessons });
+});
 
-    }
-
-)
-
-const getLessonsByCourse = asyncWrapper(
-
-    async (req, res, next) => {
-
-
-        const courseId = req.params.courseId;
-
-        const lessons = await Lesson.find({course: courseId }).sort({ order: 1 });
-
-        res.json({status: httpStatusText.SUCCESS, data: lessons});
-
-
-
-
-    }
-
-
-
-)
-
-export {
-    createLesson,
-    getLessonsByCourse
-}
+export { createLesson, getLessonsByCourse };
