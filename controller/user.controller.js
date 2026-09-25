@@ -22,6 +22,7 @@ const { page, limit, skip } = getPaginationParams(req.query);
                     pagination: { page, limit, totalPages, totalUsers } }
     
 } );
+
 });
 
 const register = asyncWrapper(async (req, res, next) => {

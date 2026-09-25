@@ -12,8 +12,6 @@ import { enrollmentStatus } from "../utils/enrollmentStatus.js";
 import { paymentStatus } from "../utils/paymentStatus.js";
 import stripe from "../utils/stripe.js";
 
-
-
 const createCheckoutSession = asyncWrapper(async (req, res, next) => {
   const { courseId } = req.params;
   const studentId = req.currentUser.id;
@@ -24,7 +22,6 @@ const createCheckoutSession = asyncWrapper(async (req, res, next) => {
       400,
       httpStatusText.ERROR,
     );
-
     return next(error);
   }
 
@@ -36,7 +33,6 @@ const createCheckoutSession = asyncWrapper(async (req, res, next) => {
       404,
       httpStatusText.ERROR,
     );
-
     return next(error);
   }
 
@@ -51,7 +47,6 @@ const createCheckoutSession = asyncWrapper(async (req, res, next) => {
       409,
       httpStatusText.ERROR,
     );
-
     return next(error);
   }
 
@@ -67,12 +62,10 @@ const createCheckoutSession = asyncWrapper(async (req, res, next) => {
         409,
         httpStatusText.ERROR,
       );
-
       return next(error);
     }
 
     existingEnrollment.status = enrollmentStatus.FAILED;
-
     await existingEnrollment.save();
   }
 
@@ -87,37 +80,28 @@ const createCheckoutSession = asyncWrapper(async (req, res, next) => {
   try {
     checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-
       line_items: [
         {
           price_data: {
             currency: "usd",
-
             product_data: {
               name: course.title,
             },
-
             unit_amount: Math.round(course.price * 100),
           },
-
           quantity: 1,
         },
       ],
-
       mode: "payment",
-
-success_url: process.env.STRIPE_SUCCESS_URL,
-cancel_url: process.env.STRIPE_CANCEL_URL,
-
+      success_url: process.env.STRIPE_SUCCESS_URL,
+      cancel_url: process.env.STRIPE_CANCEL_URL,
       metadata: {
         enrollmentId: enrollment._id.toString(),
       },
     });
   } catch (error) {
     enrollment.status = enrollmentStatus.FAILED;
-
     await enrollment.save();
-
     throw error;
   }
 
@@ -133,15 +117,12 @@ cancel_url: process.env.STRIPE_CANCEL_URL,
     });
   } catch (error) {
     enrollment.status = enrollmentStatus.FAILED;
-
     await enrollment.save();
-
     throw error;
   }
 
-  res.status(201).json({
+  return res.status(201).json({
     status: httpStatusText.SUCCESS,
-
     data: {
       checkoutUrl: checkoutSession.url,
     },
@@ -150,7 +131,6 @@ cancel_url: process.env.STRIPE_CANCEL_URL,
 
 const handleWebhook = async (req, res) => {
   const signature = req.headers["stripe-signature"];
-
 
   if (!signature) {
     return res.status(400).json({
@@ -167,9 +147,9 @@ const handleWebhook = async (req, res) => {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
+    console.log("EVENT VERIFIED:", event.type);
   } catch (error) {
     console.log("Webhook signature error:", error.message);
-
     return res.status(400).json({
       status: httpStatusText.ERROR,
       message: "Invalid Stripe webhook signature",
@@ -179,12 +159,11 @@ const handleWebhook = async (req, res) => {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-
+      console.log("WEBHOOK RECEIVED");
+      console.log("Session metadata:", session.metadata);
 
       if (session.payment_status !== "paid") {
-        return res.status(200).json({
-          received: true,
-        });
+        return res.status(200).json({ received: true });
       }
 
       const enrollmentId = session.metadata?.enrollmentId;
@@ -193,6 +172,13 @@ const handleWebhook = async (req, res) => {
         return res.status(400).json({
           status: httpStatusText.ERROR,
           message: "Missing enrollment ID",
+        });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(enrollmentId)) {
+        return res.status(400).json({
+          status: httpStatusText.ERROR,
+          message: "Invalid enrollment ID",
         });
       }
 
@@ -207,9 +193,15 @@ const handleWebhook = async (req, res) => {
         });
       }
 
+
       if (payment.status === paymentStatus.SUCCESS) {
-        return res.status(200).json({
-          received: true,
+        return res.status(200).json({ received: true });
+      }
+
+      if (payment.enrollment.toString() !== enrollmentId) {
+        return res.status(400).json({
+          status: httpStatusText.ERROR,
+          message: "Enrollment does not match payment",
         });
       }
 
@@ -222,8 +214,11 @@ const handleWebhook = async (req, res) => {
         });
       }
 
-      enrollment.status = enrollmentStatus.SUCCESS;
+      if (enrollment.status !== enrollmentStatus.PENDING) {
+        return res.status(200).json({ received: true });
+      }
 
+      enrollment.status = enrollmentStatus.SUCCESS;
       payment.status = paymentStatus.SUCCESS;
       payment.stripeEventId = event.id;
 
@@ -241,17 +236,12 @@ const handleWebhook = async (req, res) => {
       if (payment && payment.status === paymentStatus.PENDING) {
         payment.status = paymentStatus.CANCELED;
         payment.stripeEventId = event.id;
-
         await payment.save();
 
         const enrollment = await Enrollment.findById(payment.enrollment);
 
-        if (
-          enrollment &&
-          enrollment.status === enrollmentStatus.PENDING
-        ) {
+        if (enrollment && enrollment.status === enrollmentStatus.PENDING) {
           enrollment.status = enrollmentStatus.FAILED;
-
           await enrollment.save();
         }
       }
@@ -259,12 +249,9 @@ const handleWebhook = async (req, res) => {
 
     console.log(`Stripe event: ${event.type}`);
 
-    res.status(200).json({
-      received: true,
-    });
+    return res.status(200).json({ received: true });
   } catch (error) {
     console.log("Webhook processing error:", error.message);
-
     return res.status(500).json({
       status: httpStatusText.ERROR,
       message: "Webhook processing failed",
@@ -273,4 +260,3 @@ const handleWebhook = async (req, res) => {
 };
 
 export { createCheckoutSession, handleWebhook };
-

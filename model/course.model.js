@@ -1,46 +1,56 @@
 import mongoose from "mongoose";
-import {courseCategory} from "../utils/category.js";
-const courseSchema = new mongoose.Schema({
 
+import { courseCategory } from "../utils/category.js";
+
+const courseSchema = new mongoose.Schema(
+  {
     title: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      trim: true,
     },
-    
+
     description: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      trim: true,
     },
 
     instructor: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
 
     price: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
+      min: 0,
     },
 
     published: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
 
-    category:{
-        type: String,
-        enum: [courseCategory.PROGRAMMING, courseCategory.DESIGN, courseCategory.MARKETING, courseCategory.BUSINESS, courseCategory.LANGUAGES, courseCategory.PERSONAL_DEVELOPMENT],
-        required: true
-    }
-
-
-},
-    { timestamps: true }
+    category: {
+      type: String,
+      enum: [
+        courseCategory.PROGRAMMING,
+        courseCategory.DESIGN,
+        courseCategory.MARKETING,
+        courseCategory.BUSINESS,
+        courseCategory.LANGUAGES,
+        courseCategory.PERSONAL_DEVELOPMENT,
+      ],
+      required: true,
+    },
+  },
+  { timestamps: true },
 );
 
 courseSchema.index({ instructor: 1 });
+
 const Course = mongoose.model("Course", courseSchema);
 
 export default Course;
-

@@ -1,13 +1,19 @@
 import AppError from "../utils/appError.js";
+
 import asyncWrapper from "../middleware/asyncWrapper.js";
+
 import { httpStatusText } from "../utils/httpStatusText.js";
+
 import Course from "../model/course.model.js";
+
 import Review from "../model/review.model.js";
+
 import Enrollment from "../model/enrollment.model.js";
+
+import { enrollmentStatus } from "../utils/enrollmentStatus.js";
 
 const createReview = asyncWrapper(async (req, res, next) => {
   const userId = req.currentUser.id;
-
   const { courseId, rating, comment } = req.body;
 
   const course = await Course.findById(courseId);
@@ -22,17 +28,18 @@ const createReview = asyncWrapper(async (req, res, next) => {
   }
 
   if (!course.published) {
-  const error = AppError.create(
-    "You cannot review an unpublished course",
-    403,
-    httpStatusText.ERROR,
-  );
+    const error = AppError.create(
+      "You cannot review an unpublished course",
+      403,
+      httpStatusText.ERROR,
+    );
+    return next(error);
+  }
 
-  return next(error);
-}
   const enrollment = await Enrollment.findOne({
     student: userId,
     course: courseId,
+    status: enrollmentStatus.SUCCESS,
   });
 
   if (!enrollment) {
@@ -64,6 +71,7 @@ const createReview = asyncWrapper(async (req, res, next) => {
     rating,
     comment,
   });
+
   return res.status(201).json({
     status: httpStatusText.SUCCESS,
     data: {
@@ -73,41 +81,34 @@ const createReview = asyncWrapper(async (req, res, next) => {
 });
 
 const getCourseReviews = asyncWrapper(
-
-  async (req,res, next) =>{
-
+  async (req, res, next) => {
     const courseId = req.params.courseId;
 
     const course = await Course.findById(courseId);
 
-      if (!course) {
-        const error = AppError.create(
-          "Course not found",
-          404,
-          httpStatusText.ERROR,
-        );
-        return next(error);
-      }
-    
-      const reviews = await Review.find({ course: courseId }).populate('user', 'firstName lastName');
+    if (!course) {
+      const error = AppError.create(
+        "Course not found",
+        404,
+        httpStatusText.ERROR,
+      );
+      return next(error);
+    }
 
-      res.json({
-        status: httpStatusText.SUCCESS,
-        data: {
-          reviews,
-        },
-      });
+    const reviews = await Review.find({ course: courseId })
+      .populate("user", "firstName lastName");
 
-
+    res.json({
+      status: httpStatusText.SUCCESS,
+      data: {
+        reviews,
+      },
+    });
   }
-
-
 );
 
 const updateReview = asyncWrapper(
-
-  async (req,res,next) =>{
-
+  async (req, res, next) => {
     const reviewId = req.params.reviewId;
 
     const review = await Review.findById(reviewId);
@@ -121,7 +122,7 @@ const updateReview = asyncWrapper(
       return next(error);
     }
 
-    if (review.user.toString() !== req.currentUser.id){
+    if (review.user.toString() !== req.currentUser.id) {
       const error = AppError.create(
         "You are not the owner of this review",
         403,
@@ -133,11 +134,9 @@ const updateReview = asyncWrapper(
     const { rating, comment } = req.body;
 
     const updatedReview = await Review.findByIdAndUpdate(
-
       reviewId,
       { rating, comment },
-      { new: true, runValidators: true }
-
+      { new: true, runValidators: true },
     );
 
     res.json({
@@ -146,58 +145,46 @@ const updateReview = asyncWrapper(
         review: updatedReview,
       },
     });
-
-
-
-
   }
-
-
-
 );
 
-
 const deleteReview = asyncWrapper(async (req, res, next) => {
+  const reviewId = req.params.reviewId;
 
-    const reviewId = req.params.reviewId;
+  const review = await Review.findById(reviewId);
 
-    const review = await Review.findById(reviewId);
+  if (!review) {
+    const error = AppError.create(
+      "Review not found",
+      404,
+      httpStatusText.ERROR,
+    );
+    return next(error);
+  }
 
-    if (!review) {
-      const error = AppError.create(
-        "Review not found",
-        404,
-        httpStatusText.ERROR,
-      );
-      return next(error);
-    }
+  if (review.user.toString() !== req.currentUser.id) {
+    const error = AppError.create(
+      "You are not the owner of this review",
+      403,
+      httpStatusText.ERROR,
+    );
+    return next(error);
+  }
 
-    if (review.user.toString() !== req.currentUser.id){
-      const error = AppError.create(
-        "You are not the owner of this review",
-        403,
-        httpStatusText.ERROR,
-      );
-      return next(error);
-    }
+  const deletedReview = await Review.findByIdAndDelete(reviewId);
 
-    const deletedReview = await Review.findByIdAndDelete(reviewId);
+  res.json({
+    status: httpStatusText.SUCCESS,
+    data: {
+      message: "Review deleted successfully",
+      review: deletedReview,
+    },
+  });
+});
 
-    res.json({
-      status: httpStatusText.SUCCESS,
-      data: {
-        message: "Review deleted successfully",
-        review: deletedReview,
-      }})
-    
-
-
-
-})
-
-export{
+export {
   createReview,
   getCourseReviews,
-  updateReview, 
-  deleteReview
-}
+  updateReview,
+  deleteReview,
+};

@@ -1,50 +1,52 @@
 import mongoose from "mongoose";
-import validator from 'validator';
+import validator from "validator";
+
 import { userRole } from "../utils/userRole.js";
 
-
-
-
-
-
-
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     firstName: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      trim: true,
     },
+
     lastName: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      trim: true,
     },
+
     email: {
-        type: String,
-        unique: true,
-        required: true,
-        validate: [validator.isEmail, "someThinge error make sure form email"]
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate: [validator.isEmail, "Please provide a valid email address"],
     },
+
     password: {
-        type: String,
-        required: true,
-        select: false
+      type: String,
+      required: true,
+      select: false,
     },
+
     role: {
-        type: String,
-        enum: [userRole.ADMIN, userRole.INSTRUCTOR, userRole.STUDENT],
-        default: userRole.STUDENT
+      type: String,
+      enum: [userRole.ADMIN, userRole.INSTRUCTOR, userRole.STUDENT],
+      default: userRole.STUDENT,
     },
+
     avatar: {
-        type: String,
+      type: String,
     },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-}, {
-    timestamps: true
-}
-
-)
-
-
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;
-

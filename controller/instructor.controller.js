@@ -1,9 +1,16 @@
 import asyncWrapper from "../middleware/asyncWrapper.js";
+
 import AppError from "../utils/appError.js";
+
 import { httpStatusText } from "../utils/httpStatusText.js";
+
 import Course from "../model/course.model.js";
+
 import Enrollment from "../model/enrollment.model.js";
+
 import Review from "../model/review.model.js";
+
+import { enrollmentStatus } from "../utils/enrollmentStatus.js";
 
 const getInstructorDashboard = asyncWrapper(async (req, res, next) => {
   const instructorId = req.currentUser.id;
@@ -14,24 +21,19 @@ const getInstructorDashboard = asyncWrapper(async (req, res, next) => {
 
   const totalCourses = instructorCourses.length;
 
-  const publishedCourses = await Course.find({
-    instructor: instructorId,
-    published: true,
-  });
+  const totalCoursesPublished = instructorCourses.filter(
+    (course) => course.published === true,
+  ).length;
 
-  const totalCoursesPublished = publishedCourses.length;
-
-  const unpublishedCourses = await Course.find({
-    instructor: instructorId,
-    published: false,
-  });
-
-  const totalCoursesUnPublished = unpublishedCourses.length;
+  const totalCoursesUnPublished = instructorCourses.filter(
+    (course) => course.published === false,
+  ).length;
 
   const coursesIds = instructorCourses.map((course) => course._id);
 
   const enrollments = await Enrollment.find({
     course: { $in: coursesIds },
+    status: enrollmentStatus.SUCCESS,
   });
 
   const studentIds = new Set(

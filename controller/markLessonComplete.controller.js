@@ -34,7 +34,7 @@ const markLessonComplete = asyncWrapper(async (req, res, next) => {
     });
 
     await progress.save();
-    res.json({ status: httpStatusText.SUCCESS, data: progress });
+    res.status(201).json({ status: httpStatusText.SUCCESS, data: progress });
   } catch (err) {
     if (err.code == 11000) {
       const error = AppError.create(

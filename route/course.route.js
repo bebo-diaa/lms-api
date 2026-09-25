@@ -9,13 +9,12 @@ import {
   getCourseById,
 } from "../controller/course.controller.js";
 
-import {
-  enrollInCourse,
-  getMyEnrollments,
-} from "../controller/enrollment.controller.js";
+import { getMyEnrollments } from "../controller/enrollment.controller.js";
 
 import verifyToken from "../middleware/verifyToken.js";
+
 import { allowedTo } from "../middleware/allowedTo.js";
+
 import { userRole } from "../utils/userRole.js";
 
 import {
@@ -61,7 +60,10 @@ courseRouter.route("/").get(getAllCourses);
 
 courseRouter.route("/myCourses").get(verifyToken, getMyCourses);
 
-courseRouter.route("/my-enrollments").get(verifyToken, getMyEnrollments);
+courseRouter.route("/my-enrollments").get(
+  verifyToken,
+  getMyEnrollments,
+);
 
 courseRouter
   .route("/:courseId")
@@ -81,10 +83,6 @@ courseRouter
     validatorMiddleware,
     deleteCourse,
   );
-
-courseRouter
-  .route("/:courseId/enroll")
-  .post(verifyToken,allowedTo(userRole.STUDENT) ,courseIdValidation, validatorMiddleware, enrollInCourse);
 
 courseRouter
   .route("/:courseId/lessons")

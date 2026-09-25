@@ -9,7 +9,7 @@ const instructorRouter = express.Router();
 instructorRouter.get(
   "/dashboard",
   verifyToken,
-  allowedTo(userRole.INSTRUCTOR),
+  allowedTo(userRole.INSTRUCTOR, userRole.ADMIN),
   getInstructorDashboard
 );
 

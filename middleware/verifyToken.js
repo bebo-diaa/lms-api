@@ -9,7 +9,7 @@ const verifyToken = (req, res, next) => {
     const error = AppError.create(
       "Token is required",
       401,
-      httpStatusText.FAIL
+      httpStatusText.FAIL,
     );
 
     return next(error);
@@ -21,27 +21,20 @@ const verifyToken = (req, res, next) => {
     const error = AppError.create(
       "Invalid authorization format",
       401,
-      httpStatusText.FAIL
+      httpStatusText.FAIL,
     );
 
     return next(error);
   }
 
   try {
-    const currentUser = jwt.verify(
-      token,
-      process.env.JWT_SECRET_KEY
-    );
+    const currentUser = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     req.currentUser = currentUser;
 
     next();
   } catch (err) {
-    const error = AppError.create(
-      "Invalid token",
-      401,
-      httpStatusText.FAIL
-    );
+    const error = AppError.create("Invalid token", 401, httpStatusText.FAIL);
 
     return next(error);
   }

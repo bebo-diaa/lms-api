@@ -87,7 +87,7 @@ const getMyFavorites = asyncWrapper(
         const userId = req.currentUser.id;
 
 
-        const myFavorites = await Favorite.find({ user: userId }).populate('course');
+        const myFavorites = await Favorite.find({ user: userId }).populate('course', "title category");
 
         res.status(200).json({
             status: httpStatusText.SUCCESS,

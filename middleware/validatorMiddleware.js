@@ -11,11 +11,7 @@ const validatorMiddleware = (req, res, next) => {
       .map((err) => err.msg)
       .join(", ");
 
-    const error = AppError.create(
-      errorMessages,
-      400,
-      httpStatusText.FAIL
-    );
+    const error = AppError.create(errorMessages, 400, httpStatusText.FAIL);
 
     return next(error);
   }
@@ -23,6 +19,4 @@ const validatorMiddleware = (req, res, next) => {
   next();
 };
 
-export {
-  validatorMiddleware,
-};
+export { validatorMiddleware };

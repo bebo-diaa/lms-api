@@ -20,7 +20,6 @@ const enrollmentSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(enrollmentStatus),
       default: enrollmentStatus.PENDING,
-      required: true,
     },
   },
   {
@@ -41,4 +40,3 @@ enrollmentSchema.index(
 const Enrollment = mongoose.model("Enrollment", enrollmentSchema);
 
 export default Enrollment;
-

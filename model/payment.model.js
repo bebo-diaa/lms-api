@@ -54,7 +54,6 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       enum: Object.values(paymentStatus),
       default: paymentStatus.PENDING,
-      required: true,
       index: true,
     },
   },

@@ -9,7 +9,7 @@ info:
 
     The API provides authentication, user management, course management,
     lessons, enrollments, progress tracking, reviews, favorites,
-    and instructor dashboard functionality.
+    instructor dashboard functionality, and Stripe payments.
 
 servers:
   - url: http://localhost:4000
@@ -34,61 +34,65 @@ tags:
     description: Favorite courses
   - name: Instructor
     description: Instructor dashboard
+  - name: Payment
+    description: Stripe payment and checkout
 
 components:
+
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Enter your JWT token as Bearer <token>
+
 
   parameters:
-    UserId:
-      name: userId
-      in: path
-      required: true
-      description: MongoDB ObjectId of the user
-      schema:
-        type: string
-        pattern: '^[a-fA-F0-9]{24}$'
-        example: 65f123456789abcdef123456
 
     CourseId:
       name: courseId
       in: path
       required: true
-      description: MongoDB ObjectId of the course
+      description: Course ID
       schema:
         type: string
-        pattern: '^[a-fA-F0-9]{24}$'
-        example: 65f123456789abcdef123456
+        pattern: '^[0-9a-fA-F]{24}$'
+        example: 65f1a2b3c4d5e6f789012345
 
     LessonId:
       name: lessonId
       in: path
       required: true
-      description: MongoDB ObjectId of the lesson
+      description: Lesson ID
       schema:
         type: string
-        pattern: '^[a-fA-F0-9]{24}$'
-        example: 65f123456789abcdef123456
+        pattern: '^[0-9a-fA-F]{24}$'
+        example: 65f1a2b3c4d5e6f789012346
+
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: User ID
+      schema:
+        type: string
+        pattern: '^[0-9a-fA-F]{24}$'
+        example: 65f1a2b3c4d5e6f789012347
 
     ReviewId:
       name: reviewId
       in: path
       required: true
-      description: MongoDB ObjectId of the review
+      description: Review ID
       schema:
         type: string
-        pattern: '^[a-fA-F0-9]{24}$'
-        example: 65f123456789abcdef123456
+        pattern: '^[0-9a-fA-F]{24}$'
+        example: 65f1a2b3c4d5e6f789012348
 
     Page:
       name: page
       in: query
-      description: Page number
       required: false
+      description: Page number
       schema:
         type: integer
         minimum: 1
@@ -98,70 +102,32 @@ components:
     Limit:
       name: limit
       in: query
-      description: Number of items per page
       required: false
+      description: Number of results per page
       schema:
         type: integer
         minimum: 1
-        default: 10
         example: 10
 
+
   schemas:
-    Error:
-      type: object
-      required:
-        - status
-        - message
-      properties:
-        status:
-          type: string
-          example: fail
-        message:
-          type: string
-          example: An error occurred
-
-    InstructorSummary:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        firstName:
-          type: string
-          example: Bahaa
-        lastName:
-          type: string
-          example: Diaa
-
-    UserSummary:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        firstName:
-          type: string
-          example: Bahaa
-        lastName:
-          type: string
-          example: Diaa
 
     User:
       type: object
       properties:
         _id:
           type: string
-          example: 65f123456789abcdef123456
+          example: 65f1a2b3c4d5e6f789012345
         firstName:
           type: string
-          example: Bahaa
+          example: Ahmed
         lastName:
           type: string
-          example: Diaa
+          example: Mohamed
         email:
           type: string
           format: email
-          example: user@example.com
+          example: ahmed@example.com
         role:
           type: string
           enum:
@@ -172,317 +138,61 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: 2026-09-20T12:00:00.000Z
         updatedAt:
           type: string
           format: date-time
-          example: 2026-09-20T12:00:00.000Z
+
 
     PublicUser:
       type: object
       properties:
         firstName:
           type: string
-          example: Bahaa
+          example: Ahmed
         lastName:
           type: string
-          example: Diaa
+          example: Mohamed
         email:
           type: string
           format: email
-          example: user@example.com
+          example: ahmed@example.com
 
-    Course:
+
+    UserSummary:
       type: object
       properties:
         _id:
           type: string
-          example: 65f123456789abcdef123456
-        title:
+          example: 65f1a2b3c4d5e6f789012345
+        firstName:
           type: string
-          example: Node.js Backend Development
-        description:
+          example: Ahmed
+        lastName:
           type: string
-          example: Learn backend development using Node.js and Express.
-        price:
-          type: number
-          example: 500
-        category:
+          example: Mohamed
+        email:
           type: string
-          example: Backend
-        instructor:
-          type: string
-          example: 65f123456789abcdef123456
-        published:
-          type: boolean
-          example: true
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
+          format: email
+          example: ahmed@example.com
 
-    CoursePopulated:
+
+    InstructorSummary:
       type: object
       properties:
         _id:
           type: string
-          example: 65f123456789abcdef123456
-        title:
+          example: 65f1a2b3c4d5e6f789012345
+        firstName:
           type: string
-          example: Node.js Backend Development
-        description:
+          example: Ahmed
+        lastName:
           type: string
-          example: Learn backend development using Node.js and Express.
-        price:
-          type: number
-          example: 500
-        category:
+          example: Mohamed
+        email:
           type: string
-          example: Backend
-        instructor:
-          $ref: '#/components/schemas/InstructorSummary'
-        published:
-          type: boolean
-          example: true
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
+          format: email
+          example: ahmed@example.com
 
-    CourseLessonSummary:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        title:
-          type: string
-          example: Introduction to Node.js
-        order:
-          type: integer
-          example: 1
-
-    Lesson:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        title:
-          type: string
-          example: Introduction to Express
-        videoUrl:
-          type: string
-          format: uri
-          example: https://example.com/videos/express.mp4
-        course:
-          type: string
-          example: 65f123456789abcdef123456
-        order:
-          type: integer
-          example: 1
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    Enrollment:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        student:
-          type: string
-          example: 65f123456789abcdef123456
-        course:
-          type: string
-          example: 65f123456789abcdef123456
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    EnrollmentPopulated:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        student:
-          type: string
-          example: 65f123456789abcdef123456
-        course:
-          $ref: '#/components/schemas/CoursePopulated'
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    Progress:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        student:
-          type: string
-          example: 65f123456789abcdef123456
-        lesson:
-          type: string
-          example: 65f123456789abcdef123456
-        completed:
-          type: boolean
-          example: true
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    Review:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        user:
-          type: string
-          example: 65f123456789abcdef123456
-        course:
-          type: string
-          example: 65f123456789abcdef123456
-        rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-          example: 5
-        comment:
-          type: string
-          example: Excellent course.
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    ReviewPopulated:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        user:
-          $ref: '#/components/schemas/UserSummary'
-        course:
-          type: string
-          example: 65f123456789abcdef123456
-        rating:
-          type: integer
-          minimum: 1
-          maximum: 5
-          example: 5
-        comment:
-          type: string
-          example: Excellent course.
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    Favorite:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        user:
-          type: string
-          example: 65f123456789abcdef123456
-        course:
-          type: string
-          example: 65f123456789abcdef123456
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    FavoritePopulated:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 65f123456789abcdef123456
-        user:
-          type: string
-          example: 65f123456789abcdef123456
-        course:
-          $ref: '#/components/schemas/CoursePopulated'
-        createdAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-        updatedAt:
-          type: string
-          format: date-time
-          example: 2026-09-20T12:00:00.000Z
-
-    CourseFilters:
-      type: object
-      properties:
-        category:
-          type: string
-          nullable: true
-          example: Backend
-        search:
-          type: string
-          nullable: true
-          example: Node
-        sort:
-          type: string
-          nullable: true
-          example: createdAt
-        order:
-          type: string
-          nullable: true
-          enum:
-            - asc
-            - desc
-          example: desc
 
     RegisterRequest:
       type: object
@@ -494,19 +204,20 @@ components:
       properties:
         firstName:
           type: string
-          example: Bahaa
+          example: Ahmed
         lastName:
           type: string
-          example: Diaa
+          example: Mohamed
         email:
           type: string
           format: email
-          example: user@example.com
+          example: ahmed@example.com
         password:
           type: string
           format: password
           minLength: 8
-          example: Password123
+          example: password123
+
 
     LoginRequest:
       type: object
@@ -517,11 +228,167 @@ components:
         email:
           type: string
           format: email
-          example: user@example.com
+          example: ahmed@example.com
         password:
           type: string
           format: password
-          example: Password123
+          example: password123
+
+
+    RegisterResponse:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: Ahmed
+        lastName:
+          type: string
+          example: Mohamed
+        email:
+          type: string
+          format: email
+          example: ahmed@example.com
+        role:
+          type: string
+          enum:
+            - student
+          example: student
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+
+    UserByIdResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        firstName:
+          type: string
+          example: Ahmed
+        lastName:
+          type: string
+          example: Mohamed
+        email:
+          type: string
+          format: email
+          example: ahmed@example.com
+
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            totalPages:
+              type: integer
+              example: 5
+            totalUsers:
+              type: integer
+              example: 50
+
+
+    Course:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        title:
+          type: string
+          example: Node.js Basics
+        description:
+          type: string
+          example: Learn the fundamentals of Node.js
+        price:
+          type: number
+          minimum: 0
+          example: 199
+        category:
+          type: string
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
+        instructor:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        published:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    CoursePopulated:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        title:
+          type: string
+          example: Node.js Basics
+        description:
+          type: string
+          example: Learn the fundamentals of Node.js
+        price:
+          type: number
+          minimum: 0
+          example: 199
+        category:
+          type: string
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
+        instructor:
+          $ref: '#/components/schemas/InstructorSummary'
+        published:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 
     CreateCourseRequest:
       type: object
@@ -533,35 +400,184 @@ components:
       properties:
         title:
           type: string
-          example: Node.js Backend Development
+          example: Node.js Basics
         description:
           type: string
-          example: Learn backend development using Node.js and Express.
+          example: Learn the fundamentals of Node.js
         price:
           type: number
-          example: 500
+          minimum: 0
+          example: 199
         category:
           type: string
-          example: Backend
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
+
 
     UpdateCourseRequest:
       type: object
       properties:
         title:
           type: string
-          example: Advanced Node.js Backend
+          example: Advanced Node.js
         description:
           type: string
-          example: Advanced backend development concepts.
+          example: Advanced Node.js backend concepts
         price:
           type: number
-          example: 750
+          minimum: 0
+          example: 299
+        category:
+          type: string
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
         published:
           type: boolean
           example: true
+
+
+    CourseFilters:
+      type: object
+      properties:
         category:
           type: string
-          example: Backend
+          nullable: true
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
+        search:
+          type: string
+          nullable: true
+          example: node
+        sort:
+          type: string
+          nullable: true
+          enum:
+            - price
+            - title
+            - createdAt
+          example: createdAt
+        order:
+          type: string
+          nullable: true
+          enum:
+            - asc
+            - desc
+          example: desc
+
+
+    CourseLessonSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012347
+        title:
+          type: string
+          example: Introduction
+        order:
+          type: integer
+          example: 1
+
+
+    CourseListResponse:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoursePopulated'
+        pagination:
+          type: object
+          properties:
+            totalCourses:
+              type: integer
+              example: 20
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            totalPages:
+              type: integer
+              example: 2
+        filters:
+          $ref: '#/components/schemas/CourseFilters'
+
+
+    MyCoursesResponse:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoursePopulated'
+
+
+    CourseDetailsResponse:
+      type: object
+      properties:
+        course:
+          $ref: '#/components/schemas/CoursePopulated'
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseLessonSummary'
+
+
+    DeleteCourseResponse:
+      type: object
+      properties:
+        course:
+          $ref: '#/components/schemas/Course'
+        message:
+          type: string
+          example: Course deleted successfully
+
+
+    Lesson:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012348
+        title:
+          type: string
+          example: Introduction
+        videoUrl:
+          type: string
+          example: /uploads/videos/introduction.mp4
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        order:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 
     CreateLessonRequest:
       type: object
@@ -570,23 +586,226 @@ components:
       properties:
         title:
           type: string
-          example: Introduction to Express
+          example: Introduction
+        video:
+          type: string
+          format: binary
+          description: Video file to upload.
         videoUrl:
           type: string
-          format: uri
-          example: https://example.com/videos/express.mp4
+          description: Optional video URL used when no video file is uploaded.
+          example: https://example.com/videos/introduction.mp4
 
-    CreateReviewRequest:
+
+    LessonsResponse:
       type: object
-      required:
-        - courseId
-        - rating
-        - comment
       properties:
-        courseId:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'
+
+
+    Enrollment:
+      type: object
+      properties:
+        _id:
           type: string
-          pattern: '^[a-fA-F0-9]{24}$'
-          example: 65f123456789abcdef123456
+          example: 65f1a2b3c4d5e6f789012349
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        status:
+          type: string
+          enum:
+            - pending
+            - success
+            - failed
+          example: success
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    EnrollmentPopulated:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012349
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          $ref: '#/components/schemas/CoursePopulated'
+        status:
+          type: string
+          enum:
+            - pending
+            - success
+            - failed
+          example: success
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    EnrollmentResponse:
+      type: object
+      properties:
+        enrollment:
+          $ref: '#/components/schemas/Enrollment'
+
+
+    MyEnrollmentsResponse:
+      type: object
+      properties:
+        enrollments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrollmentPopulated'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 10
+            totalEnrollments:
+              type: integer
+              example: 20
+            totalPages:
+              type: integer
+              example: 2
+
+
+    Payment:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012350
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        enrollment:
+          type: string
+          example: 65f1a2b3c4d5e6f789012349
+        stripeSessionId:
+          type: string
+          example: cs_test_a1b2c3d4
+        stripeEventId:
+          type: string
+          nullable: true
+          example: evt_123456789
+        amount:
+          type: number
+          minimum: 0
+          example: 199
+        currency:
+          type: string
+          example: usd
+        status:
+          type: string
+          enum:
+            - pending
+            - success
+            - failed
+            - canceled
+          example: success
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    PaymentCheckoutResponse:
+      type: object
+      properties:
+        checkoutUrl:
+          type: string
+          example: https://checkout.stripe.com/c/pay/cs_test_...
+
+
+    PaymentWebhookResponse:
+      type: object
+      properties:
+        received:
+          type: boolean
+          example: true
+
+
+    Progress:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012351
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        lesson:
+          type: string
+          example: 65f1a2b3c4d5e6f789012348
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        completed:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    ProgressResponse:
+      type: object
+      properties:
+        progress:
+          $ref: '#/components/schemas/Progress'
+
+
+    CourseProgressResponse:
+      type: object
+      properties:
+        progressPercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+          example: 75
+
+
+    Review:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012352
+        user:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
         rating:
           type: integer
           minimum: 1
@@ -594,7 +813,60 @@ components:
           example: 5
         comment:
           type: string
-          example: Excellent course.
+          example: Excellent course!
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    ReviewPopulated:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012352
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: Excellent course!
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    CreateReviewRequest:
+      type: object
+      required:
+        - courseId
+        - rating
+      properties:
+        courseId:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: Excellent course!
+
 
     UpdateReviewRequest:
       type: object
@@ -608,382 +880,166 @@ components:
           type: string
           example: Very good course.
 
-    RegisterResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            firstName:
-              type: string
-              example: Bahaa
-            lastName:
-              type: string
-              example: Diaa
-            email:
-              type: string
-              format: email
-              example: user@example.com
-            role:
-              type: string
-              example: student
-            createdAt:
-              type: string
-              format: date-time
-            updatedAt:
-              type: string
-              format: date-time
-
-    LoginResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            token:
-              type: string
-              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-    UserByIdResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            userId:
-              type: string
-              example: 65f123456789abcdef123456
-            firstName:
-              type: string
-              example: Bahaa
-            lastName:
-              type: string
-              example: Diaa
-            email:
-              type: string
-              format: email
-              example: user@example.com
-
-    UserListResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            users:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-            pagination:
-              type: object
-              properties:
-                page:
-                  type: integer
-                  example: 1
-                limit:
-                  type: integer
-                  example: 10
-                totalPages:
-                  type: integer
-                  example: 3
-                totalUsers:
-                  type: integer
-                  example: 25
-
-    MeResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/PublicUser'
-
-    CourseResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/Course'
-
-    CourseListResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            courses:
-              type: array
-              items:
-                $ref: '#/components/schemas/CoursePopulated'
-            pagination:
-              type: object
-              properties:
-                totalCourses:
-                  type: integer
-                  example: 25
-                page:
-                  type: integer
-                  example: 1
-                limit:
-                  type: integer
-                  example: 10
-                totalPages:
-                  type: integer
-                  example: 3
-            filters:
-              $ref: '#/components/schemas/CourseFilters'
-
-    MyCoursesResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            courses:
-              type: array
-              items:
-                $ref: '#/components/schemas/CoursePopulated'
-
-    CourseDetailsResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            course:
-              $ref: '#/components/schemas/CoursePopulated'
-            lessons:
-              type: array
-              items:
-                $ref: '#/components/schemas/CourseLessonSummary'
-            lessonsCount:
-              type: integer
-              example: 10
-
-    DeleteCourseResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            course:
-              $ref: '#/components/schemas/Course'
-
-    EnrollmentResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/Enrollment'
-
-    EnrollmentListResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            enrollments:
-              type: array
-              items:
-                $ref: '#/components/schemas/EnrollmentPopulated'
-            pagination:
-              type: object
-              properties:
-                page:
-                  type: integer
-                  example: 1
-                limit:
-                  type: integer
-                  example: 10
-                totalEnrollments:
-                  type: integer
-                  example: 15
-                totalPages:
-                  type: integer
-                  example: 2
-
-    LessonResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/Lesson'
-
-    LessonListResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Lesson'
-
-    ProgressResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          $ref: '#/components/schemas/Progress'
-
-    CourseProgressResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            progressPercentage:
-              type: number
-              minimum: 0
-              maximum: 100
-              example: 75
-
-    ReviewResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            review:
-              $ref: '#/components/schemas/Review'
 
     ReviewListResponse:
       type: object
       properties:
-        status:
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewPopulated'
+
+
+    Favorite:
+      type: object
+      properties:
+        _id:
           type: string
-          example: success
-        data:
-          type: object
-          properties:
-            reviews:
-              type: array
-              items:
-                $ref: '#/components/schemas/ReviewPopulated'
+          example: 65f1a2b3c4d5e6f789012353
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    FavoriteCourseSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012346
+        title:
+          type: string
+          example: Node.js Basics
+        category:
+          type: string
+          enum:
+            - programming
+            - design
+            - marketing
+            - business
+            - languages
+            - personal-development
+          example: programming
+
+
+    FavoritePopulated:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 65f1a2b3c4d5e6f789012353
+        student:
+          type: string
+          example: 65f1a2b3c4d5e6f789012345
+        course:
+          $ref: '#/components/schemas/FavoriteCourseSummary'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 
     FavoriteResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            favorite:
-              $ref: '#/components/schemas/Favorite'
+        favorite:
+          $ref: '#/components/schemas/Favorite'
 
-    FavoriteListResponse:
+
+    FavoritesResponse:
       type: object
       properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            favorites:
-              type: array
-              items:
-                $ref: '#/components/schemas/FavoritePopulated'
+        favorites:
+          type: array
+          items:
+            $ref: '#/components/schemas/FavoritePopulated'
 
-    DeleteFavoriteResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            favorite:
-              $ref: '#/components/schemas/Favorite'
-
-    DeleteReviewResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        data:
-          type: object
-          properties:
-            message:
-              type: string
-              example: Review deleted successfully
-            review:
-              $ref: '#/components/schemas/Review'
 
     DashboardResponse:
       type: object
       properties:
+        totalCourses:
+          type: integer
+          example: 10
+        totalCoursesPublished:
+          type: integer
+          example: 7
+        totalCoursesUnPublished:
+          type: integer
+          example: 3
+        totalStudents:
+          type: integer
+          example: 150
+        totalReviews:
+          type: integer
+          example: 80
+        averageRating:
+          type: number
+          example: 4.5
+
+    CourseResponse:
+      type: object
+      properties:
+        course:
+          $ref: '#/components/schemas/Course'
+
+
+    LessonResponse:
+      type: object
+      properties:
+        newLesson:
+          $ref: '#/components/schemas/Lesson'
+
+
+    ReviewResponse:
+      type: object
+      properties:
+        review:
+          $ref: '#/components/schemas/Review'
+
+
+    DeleteReviewResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Review deleted successfully
+        review:
+          $ref: '#/components/schemas/Review'
+
+
+    DeleteFavoriteResponse:
+      type: object
+      properties:
+        favorite:
+          $ref: '#/components/schemas/Favorite'
+
+
+
+    Error:
+      type: object
+      required:
+        - status
+        - message
+      properties:
         status:
           type: string
-          example: success
-        data:
-          type: object
-          properties:
-            totalCourses:
-              type: integer
-              example: 10
-            totalCoursesPublished:
-              type: integer
-              example: 7
-            totalCoursesUnPublished:
-              type: integer
-              example: 3
-            totalStudents:
-              type: integer
-              example: 150
-            totalReviews:
-              type: integer
-              example: 80
-            averageRating:
-              type: number
-              example: 4.5
+          example: error
+        message:
+          type: string
+          example: Something went wrong
+
 
 paths:
   /api/users/register:
@@ -992,7 +1048,7 @@ paths:
         - Authentication
       operationId: registerUser
       summary: Register a new user
-      description: Creates a new student account.
+      description: Creates a new user account.
       requestBody:
         required: true
         content:
@@ -1039,6 +1095,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid email or password
           content:
@@ -1052,7 +1114,7 @@ paths:
         - Users
       operationId: getAllUsers
       summary: Get all users
-      description: Returns a paginated list of users.
+      description: Returns a paginated list of users for administrators.
       security:
         - bearerAuth: []
       parameters:
@@ -1072,7 +1134,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Access denied
+          description: Administrator access required
           content:
             application/json:
               schema:
@@ -1084,6 +1146,7 @@ paths:
         - Users
       operationId: getCurrentUser
       summary: Get current authenticated user
+      description: Returns the profile of the currently authenticated user.
       security:
         - bearerAuth: []
       responses:
@@ -1092,9 +1155,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeResponse'
+                $ref: '#/components/schemas/PublicUser'
         '401':
           description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
           content:
             application/json:
               schema:
@@ -1106,6 +1175,7 @@ paths:
         - Users
       operationId: getUserById
       summary: Get user by ID
+      description: Returns a user by ID. Administrator access is required.
       security:
         - bearerAuth: []
       parameters:
@@ -1117,12 +1187,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserByIdResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Administrator access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: User not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+
 
   /api/courses/:
     get:
@@ -1142,7 +1226,14 @@ paths:
           description: Filter courses by category
           schema:
             type: string
-            example: Backend
+            enum:
+              - programming
+              - design
+              - marketing
+              - business
+              - languages
+              - personal-development
+            example: programming
         - name: search
           in: query
           description: Search courses by title
@@ -1154,6 +1245,10 @@ paths:
           description: Field used for sorting
           schema:
             type: string
+            enum:
+              - price
+              - title
+              - createdAt
             example: createdAt
         - name: order
           in: query
@@ -1185,7 +1280,7 @@ paths:
         - Courses
       operationId: createCourse
       summary: Create a new course
-      description: Creates a new course for the authenticated instructor.
+      description: Creates a new course for the authenticated instructor or administrator.
       security:
         - bearerAuth: []
       requestBody:
@@ -1225,13 +1320,13 @@ paths:
       tags:
         - Courses
       operationId: getMyCourses
-      summary: Get instructor courses
-      description: Returns courses created by the authenticated instructor.
+      summary: Get current user's courses
+      description: Returns courses created by the authenticated user.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Instructor courses retrieved successfully
+          description: User courses retrieved successfully
           content:
             application/json:
               schema:
@@ -1242,20 +1337,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '403':
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /api/courses/my-enrollments:
     get:
       tags:
         - Enrollment
       operationId: getMyEnrollments
-      summary: Get current student's enrollments
-      description: Returns the courses in which the authenticated student is enrolled.
+      summary: Get current user's enrollments
+      description: Returns the courses in which the authenticated user is enrolled.
       security:
         - bearerAuth: []
       parameters:
@@ -1267,7 +1356,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnrollmentListResponse'
+                $ref: '#/components/schemas/MyEnrollmentsResponse'
         '401':
           description: Authentication required
           content:
@@ -1386,43 +1475,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/courses/{courseId}/enroll:
-    post:
-      tags:
-        - Enrollment
-      operationId: enrollInCourse
-      summary: Enroll in a course
-      description: Enrolls the authenticated student in a published course.
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/CourseId'
-      responses:
-        '201':
-          description: Enrollment created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EnrollmentResponse'
-        '403':
-          description: Course is not available for enrollment
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Course not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: User is already enrolled in this course
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /api/courses/{courseId}/lessons:
     post:
       tags:
@@ -1433,9 +1485,9 @@ paths:
         Creates a new lesson inside a course.
         The lesson order is automatically calculated.
 
-        The controller accepts videoUrl in the request body.
-        If file upload middleware is configured on the route,
-        an uploaded video file may also be supported.
+        The request supports multipart/form-data.
+        The video can be uploaded as a file using the "video" field.
+        Alternatively, a videoUrl can be provided in the request body.
       security:
         - bearerAuth: []
       parameters:
@@ -1443,7 +1495,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: '#/components/schemas/CreateLessonRequest'
       responses:
@@ -1478,6 +1530,8 @@ paths:
       operationId: getCourseLessons
       summary: Get course lessons
       description: Returns all lessons belonging to a course ordered by lesson order.
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/CourseId'
       responses:
@@ -1486,7 +1540,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LessonListResponse'
+                $ref: '#/components/schemas/LessonsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Enrollment required to access course lessons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /api/courses/{courseId}/lessons/{lessonId}/complete:
     post:
@@ -1501,7 +1567,7 @@ paths:
         - $ref: '#/components/parameters/CourseId'
         - $ref: '#/components/parameters/LessonId'
       responses:
-        '200':
+        '201':
           description: Lesson marked as completed
           content:
             application/json:
@@ -1563,6 +1629,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+
   /api/favorites/:
     get:
       tags:
@@ -1577,9 +1644,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FavoriteListResponse'
+                $ref: '#/components/schemas/FavoritesResponse'
         '401':
           description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
           content:
             application/json:
               schema:
@@ -1591,7 +1664,7 @@ paths:
         - Favorites
       operationId: addFavorite
       summary: Add course to favorites
-      description: Adds a published course to the authenticated user's favorites.
+      description: Adds a published course to the authenticated student's favorites.
       security:
         - bearerAuth: []
       parameters:
@@ -1603,8 +1676,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FavoriteResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
-          description: Unpublished courses cannot be favorited
+          description: Access denied or course is not available for favorites
           content:
             application/json:
               schema:
@@ -1644,12 +1723,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Favorite not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
 
   /api/reviews/create:
     post:
@@ -1660,7 +1746,7 @@ paths:
       description: |
         Creates a review for a published course.
 
-        The authenticated user must be enrolled in the course
+        The authenticated user must be successfully enrolled in the course
         and must not already have a review for it.
       security:
         - bearerAuth: []
@@ -1677,6 +1763,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: User is not allowed to review this course
           content:
@@ -1712,6 +1810,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewListResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Course not found
           content:
@@ -1743,6 +1847,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReviewResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Authentication required
           content:
@@ -1779,6 +1889,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteReviewResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Authentication required
           content:
@@ -1798,13 +1914,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+
+
   /api/instructor/dashboard:
     get:
       tags:
         - Instructor
       operationId: getInstructorDashboard
       summary: Get instructor dashboard
-      description: Returns statistics for the authenticated instructor.
+      description: Returns statistics for the authenticated instructor or administrator.
       security:
         - bearerAuth: []
       responses:

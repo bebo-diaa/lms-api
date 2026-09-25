@@ -23,7 +23,7 @@ const createCourse = asyncWrapper(async (req, res) => {
 
   await newCourse.save();
 
-  res.json({ status: httpStatusText.SUCCESS, data: newCourse });
+  res.status(201).json({ status: httpStatusText.SUCCESS, data: newCourse });
 });
 
 const getAllCourses = asyncWrapper(async (req, res) => {
@@ -77,7 +77,7 @@ if (req.query.search) {
 
   const totalPages = Math.ceil(totalCourses / limit);
 
-  res.status(201).json({
+  res.status(200).json({
     status: httpStatusText.SUCCESS,
     data: {
       courses,
@@ -146,6 +146,7 @@ const updateCourse = asyncWrapper(async (req, res, next) => {
     data: updatedCourse,
   });
 });
+
 const deleteCourse = asyncWrapper(async (req, res, next) => {
   const courseId = req.params.courseId;
 

@@ -3,6 +3,7 @@ import { httpStatusText } from "../utils/httpStatusText.js";
 import AppError from "../utils/appError.js";
 import { userRole } from "../utils/userRole.js";
 import Enrollment from "../model/enrollment.model.js";
+import { enrollmentStatus } from "../utils/enrollmentStatus.js";
 
 const isEnroll = async (req, res, next) => {
   const courseId = req.params.courseId;
@@ -16,7 +17,6 @@ const isEnroll = async (req, res, next) => {
       404,
       httpStatusText.ERROR
     );
-
     return next(error);
   }
 
@@ -33,6 +33,7 @@ const isEnroll = async (req, res, next) => {
   const enrollment = await Enrollment.findOne({
     student,
     course: courseId,
+    status: enrollmentStatus.SUCCESS,
   });
 
   if (enrollment) {

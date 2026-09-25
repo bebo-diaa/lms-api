@@ -9,8 +9,11 @@ const storage = new CloudinaryStorage({
     resource_type: "video",
     allowed_formats: ["mp4", "mov", "avi"],
   },
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+  },
 });
 
-const upload = multer({storage: storage});
+const upload = multer({ storage: storage });
 
 export default upload;
